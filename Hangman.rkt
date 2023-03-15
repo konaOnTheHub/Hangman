@@ -61,7 +61,39 @@
                             ((list? (member (string-ref word x) lettersGuessed)) (string-ref word x))
                             (else #\-)))))
 
+(define game (λ (attempts guess word)
+               (cond
+                 ((string-contains? word guess) (set! lettersGuessed (cons (string-ref guess 0) lettersGuessed))
+                                                (send letterMsg set-label (list->string (letterDisplay lettersGuessed word))))
+                 ((false? (string-contains? word guess)) (set! attempts (+ 1 attempts))
+                                                         (send scoreMsg set-label (number->string attempts))))))
 
 
 
-(list->string (letterDisplay (list #\e) "apple"))
+
+
+(define frame (new frame%
+                   [width 500]
+                   [height 500]
+                   [label "Hangman Game"]))
+
+(define scoreMsg (new message%
+                      [label (number->string attempts)]
+                      [parent frame]))
+(define letterMsg (new message%
+                       [label (list->string (letterDisplay lettersGuessed word))]
+                       [parent frame]))
+
+(define inputField (new text-field%
+                        [label "Place your guess"]
+                      
+                        [parent frame]))
+(define submitButton (new button%
+                          [label "Submit"]
+                          [callback (lambda (x y)
+                                    (game attempts (send inputField get-value) word))]
+                          [parent frame]))
+
+(send frame show #t)
+
+
