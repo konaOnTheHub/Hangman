@@ -35,7 +35,6 @@
 "fallacious"
 "vast"
 "rural"
-"well-off"
 "statuesque"
 "lamentable"
 "healthy"
@@ -55,16 +54,20 @@
 (define lettersGuessed (list))
 (define attempts 0)
 
+
 (define letterDisplay (λ (lettersGuessed word)
                         (for/list ([x (in-range 0 (string-length word) 1)])
                           (cond
                             ((list? (member (string-ref word x) lettersGuessed)) (string-ref word x))
                             (else #\-)))))
 
-(define game (λ (attempts guess word)
+(define game (λ (guess word)
                (cond
                  ((string-contains? word guess) (set! lettersGuessed (cons (string-ref guess 0) lettersGuessed))
-                                                (send letterMsg set-label (list->string (letterDisplay lettersGuessed word))))
+                                                (send letterMsg set-label (list->string (letterDisplay lettersGuessed word)))
+                                                (cond
+                                                  ((not (string-contains? (list->string (letterDisplay lettersGuessed word)) "-"))
+                                                   (send wDialog show #t))))
                  ((false? (string-contains? word guess)) (set! attempts (+ 1 attempts))
                                                          (send scoreMsg set-label (number->string attempts))))))
 
@@ -91,9 +94,20 @@
 (define submitButton (new button%
                           [label "Submit"]
                           [callback (lambda (x y)
-                                    (game attempts (send inputField get-value) word))]
+                                    (game (send inputField get-value) word))]
                           [parent frame]))
 
+(define wDialog (new dialog%
+                     [label "Win"]
+                     [parent frame]))
+
+(define wDialogMsg (new message%
+                        [label "You get to live another day :)"]
+                        [parent wDialog]))
+
+
+
 (send frame show #t)
+
 
 
