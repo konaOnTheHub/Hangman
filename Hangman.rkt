@@ -69,7 +69,10 @@
                                                   ((not (string-contains? (list->string (letterDisplay lettersGuessed word)) "-"))
                                                    (send wDialog show #t))))
                  ((false? (string-contains? word guess)) (set! attempts (+ 1 attempts))
-                                                         (send scoreMsg set-label (number->string attempts))))))
+                                                         (send scoreMsg set-label (number->string attempts))
+                                                         (cond
+                                                           ((equal? attempts 7)
+                                                            (send lDialog show #t)))))))
 
 
 
@@ -89,7 +92,6 @@
 
 (define inputField (new text-field%
                         [label "Place your guess"]
-                      
                         [parent frame]))
 (define submitButton (new button%
                           [label "Submit"]
@@ -104,6 +106,13 @@
 (define wDialogMsg (new message%
                         [label "You get to live another day :)"]
                         [parent wDialog]))
+
+(define lDialog (new dialog%
+                     [label "Loss"]
+                     [parent frame]))
+(define lDialogMsg (new message%
+                        [label "You died"]
+                        [parent lDialog]))
 
 
 
