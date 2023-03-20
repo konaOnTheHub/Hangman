@@ -1,0 +1,8 @@
+Show the word after loss DONE
+Show the list of letters we have failed Done --> Should not allow one letter to be guessed multiple times DONE
+implementing pictures DONE
+Restart the game
+Typing the whole word DONE
+No input crash (string-ref: index is out of range for empty string
+  index: 0
+  string: "")
