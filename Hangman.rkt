@@ -1,57 +1,61 @@
 #lang racket/gui
+(require racket/draw
+         net/url)
+(require (planet jphelps/guiml))
 
 (define dictionary (list
-"lean"
-"anxious"
-"upset"
-"gratis"
-"same"
-"pale"
-"foamy"
-"decisive"
-"juicy"
-"laughable"
-"political"
-"shaggy"
-"adamant"
-"periodic"
-"recondite"
-"cultured"
-"calm"
-"civil"
-"whimsical"
-"capricious"
-"lowly"
-"psychological"
-"unruly"
-"wide-eyed"
-"damaged"
-"repulsive"
-"hateful"
-"severe"
-"breakable"
-"abstracted"
-"tight"
-"fallacious"
-"vast"
-"rural"
-"statuesque"
-"lamentable"
-"healthy"
-"unadvised"
-"amazing"
-"obedient"
-"naughty"
-"mature"
-"ruddy"
-"mean"
-"parsimonious"
-"awake"
-"basic"
-"female"
-"moldy"))
+                    "lean"
+                    "anxious"
+                    "upset"
+                    "gratis"
+                    "same"
+                    "pale"
+                    "foamy"
+                    "decisive"
+                    "juicy"
+                    "laughable"
+                    "political"
+                    "shaggy"
+                    "adamant"
+                    "periodic"
+                    "recondite"
+                    "cultured"
+                    "calm"
+                    "civil"
+                    "whimsical"
+                    "capricious"
+                    "lowly"
+                    "psychological"
+                    "unruly"
+                    "wide-eyed"
+                    "damaged"
+                    "repulsive"
+                    "hateful"
+                    "severe"
+                    "breakable"
+                    "abstracted"
+                    "tight"
+                    "fallacious"
+                    "vast"
+                    "rural"
+                    "statuesque"
+                    "lamentable"
+                    "healthy"
+                    "unadvised"
+                    "amazing"
+                    "obedient"
+                    "naughty"
+                    "mature"
+                    "ruddy"
+                    "mean"
+                    "parsimonious"
+                    "awake"
+                    "basic"
+                    "female"
+                    "moldy"))
 (define word (list-ref dictionary (random (length dictionary))))
 (define lettersGuessed (list))
+(define lettersFailed (list))
 (define attempts 0)
 
 
@@ -61,18 +65,41 @@
                             ((list? (member (string-ref word x) lettersGuessed)) (string-ref word x))
                             (else #\-)))))
 
+
+(define fLetterDisplay (lambda (lettersFailed)
+                         (for/list ([y lettersFailed])
+                           (string y))))
+
+
 (define game (λ (guess word)
                (cond
+                 ((equal? guess word)
+                  (send letterMsg set-label word)
+                  (send wDialog show #t))
+                 ((> (string-length guess) 1)
+                  (send error show #t))
                  ((string-contains? word guess) (set! lettersGuessed (cons (string-ref guess 0) lettersGuessed))
                                                 (send letterMsg set-label (list->string (letterDisplay lettersGuessed word)))
                                                 (cond
                                                   ((not (string-contains? (list->string (letterDisplay lettersGuessed word)) "-"))
                                                    (send wDialog show #t))))
-                 ((false? (string-contains? word guess)) (set! attempts (+ 1 attempts))
-                                                         (send scoreMsg set-label (number->string attempts))
-                                                         (cond
-                                                           ((equal? attempts 7)
-                                                            (send lDialog show #t)))))))
+                 ((false? (string-contains? word guess)) (cond
+                                                           ((string-contains? (list->string lettersFailed) guess) (send dupeLetter show #t))
+                                                           (#t (set! lettersFailed (cons (string-ref guess 0) lettersFailed))
+                                                               (set! attempts (+ 1 attempts))
+                                                               (send scoreMsg set-label (number->string attempts))
+                                                               (send fLetterMsg set-label (string-append "Wrong letters: " (string-join (fLetterDisplay lettersFailed) ", ")))
+                                                               (delete-children panel)
+                                                               (new canvas%
+                                                                    [parent panel]
+                                                                    [horiz-margin 131]
+                                                                    [vert-margin 52]
+                                                                    [paint-callback
+                                                                     (λ (canvas dc)
+                                                                       (send dc draw-bitmap (read-bitmap (string-append (number->string attempts) ".png")) 0 0))])
+                                                               (cond
+                                                                   ((equal? attempts 7)
+                                                                   (send lDialog show #t)))))))))
 
 
 
@@ -88,7 +115,12 @@
                       [parent frame]))
 (define letterMsg (new message%
                        [label (list->string (letterDisplay lettersGuessed word))]
-                       [parent frame]))
+                       [parent frame]
+                       [auto-resize #t]))
+(define fLetterMsg (new message%
+                        [label "Wrong letters: "]
+                        [parent frame]
+                        [auto-resize #t]))
 
 (define inputField (new text-field%
                         [label "Place your guess"]
@@ -96,7 +128,7 @@
 (define submitButton (new button%
                           [label "Submit"]
                           [callback (lambda (x y)
-                                    (game (send inputField get-value) word))]
+                                      (game (string-downcase (send inputField get-value)) word))]
                           [parent frame]))
 
 (define wDialog (new dialog%
@@ -113,10 +145,35 @@
 (define lDialogMsg (new message%
                         [label "You died"]
                         [parent lDialog]))
+(define lDialogMsgWord (new message%
+                            [label (string-append "The word was: " word)]
+                            [parent lDialog]))
+
+(define dupeLetter (new dialog%
+                        [label "Duplicate Letter"]
+                        [parent frame]))
+(define dupeLetterMsg (new message%
+                           [label "Duplicate letter! Please choose another"]
+                           [parent dupeLetter]))
+
+(define error (new dialog%
+                   [label ""]
+                   
+                   [parent frame]))
+(define errorMsg (new message%
+                      [label "Error"]
+                      [parent error]))
 
 
+
+(define panel (new horizontal-panel%
+                   
+                   [parent frame]))
+
+     
 
 (send frame show #t)
+
 
 
 
